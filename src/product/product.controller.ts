@@ -9,6 +9,7 @@ import {
   Param,
   NotFoundException,
   Query,
+  Put,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/product.dto';
 
@@ -69,5 +70,33 @@ export class ProductController {
     return res
       .status(HttpStatus.OK)
       .json({ message: 'Product deleted', productDeleted: product });
+  }
+
+  @Put('/')
+  async updateProduct(
+    @Res() res,
+    @Query('id') id,
+    @Body() createProductDto: CreateProductDto,
+  ) {
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'id is not a ObjectId', product: [] });
+    }
+
+    const updatedProduct = await this.productService.updateProduct(
+      id,
+      createProductDto,
+    );
+
+    if (!updatedProduct)
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: "Product doesn't exists", product: [] });
+
+    return res.status(HttpStatus.ACCEPTED).json({
+      message: 'Product updated successfully',
+      product: updatedProduct,
+    });
   }
 }
